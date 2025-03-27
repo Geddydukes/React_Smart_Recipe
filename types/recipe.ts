@@ -8,31 +8,33 @@ export enum GroceryCategory {
   BEVERAGES = 'Beverages',
   SNACKS = 'Snacks',
   HOUSEHOLD = 'Household',
-  OTHER = 'Other'
+  OTHER = 'Other',
 }
 
 export interface Recipe {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   prepTime: number;
   cookTime: number;
   servings: number;
-  ingredients: Ingredient[];
-  instructions: string[];
   image?: string;
   authorId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  ingredients: Ingredient[];
+  instructions: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Ingredient {
-  id: string;
+  id?: string;
+  recipe_id?: string;
   name: string;
   amount: number;
   unit: string;
-  category: GroceryCategory;
-  recipeId: string;
+  category: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ShoppingItem extends Ingredient {
@@ -42,4 +44,24 @@ export interface ShoppingItem extends Ingredient {
     title: string;
   }[];
   totalAmount: string;
+}
+
+export interface Instruction {
+  id?: string;
+  recipe_id?: string;
+  step_number: number;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface RecipeFormData {
+  title: string;
+  description: string;
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  image?: string;
+  ingredients: Ingredient[];
+  instructions: string[];
 }

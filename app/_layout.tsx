@@ -2,9 +2,15 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { SplashScreen } from 'expo-router';
+import { AuthProvider } from '@/lib/auth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,12 +35,12 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <AuthProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </AuthProvider>
   );
 }

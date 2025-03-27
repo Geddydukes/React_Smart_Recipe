@@ -1,7 +1,15 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  TextInput,
+} from 'react-native';
 import { Plus, Check, Trash2, Filter } from 'lucide-react-native';
 import { useState } from 'react';
-import { GroceryCategory } from '../../types/recipe';
+import { GroceryCategory } from '../../../types/recipe';
+import { router } from 'expo-router';
 
 interface ShoppingItem {
   id: string;
@@ -21,7 +29,7 @@ export default function ShoppingScreen() {
       category: GroceryCategory.PRODUCE,
       checked: false,
       recipeId: '1',
-      recipeName: 'Classic Margherita Pizza'
+      recipeName: 'Classic Margherita Pizza',
     },
     {
       id: '2',
@@ -29,14 +37,14 @@ export default function ShoppingScreen() {
       category: GroceryCategory.DAIRY,
       checked: false,
       recipeId: '1',
-      recipeName: 'Classic Margherita Pizza'
+      recipeName: 'Classic Margherita Pizza',
     },
     {
       id: '3',
       name: 'Olive Oil',
       category: GroceryCategory.PANTRY,
-      checked: false
-    }
+      checked: false,
+    },
   ]);
 
   const groupedItems = items.reduce((acc, item) => {
@@ -48,24 +56,29 @@ export default function ShoppingScreen() {
   }, {} as Record<GroceryCategory, ShoppingItem[]>);
 
   const toggleItem = (id: string) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, checked: !item.checked } : item
-    ));
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, checked: !item.checked } : item
+      )
+    );
   };
 
   const deleteItem = (id: string) => {
-    setItems(items.filter(item => item.id !== id));
+    setItems(items.filter((item) => item.id !== id));
   };
 
   const addItem = () => {
     if (!newItem.trim()) return;
-    
-    setItems([...items, {
-      id: Date.now().toString(),
-      name: newItem,
-      category: GroceryCategory.OTHER,
-      checked: false
-    }]);
+
+    setItems([
+      ...items,
+      {
+        id: Date.now().toString(),
+        name: newItem,
+        category: GroceryCategory.OTHER,
+        checked: false,
+      },
+    ]);
     setNewItem('');
   };
 
@@ -97,23 +110,34 @@ export default function ShoppingScreen() {
             <Text style={styles.categoryTitle}>{category}</Text>
             {categoryItems.map((item) => (
               <View key={item.id} style={styles.item}>
-                <Pressable 
-                  style={[styles.checkbox, item.checked && styles.checkboxChecked]}
-                  onPress={() => toggleItem(item.id)}>
+                <Pressable
+                  style={[
+                    styles.checkbox,
+                    item.checked && styles.checkboxChecked,
+                  ]}
+                  onPress={() => toggleItem(item.id)}
+                >
                   {item.checked && <Check size={16} color="#FFFFFF" />}
                 </Pressable>
                 <View style={styles.itemContent}>
-                  <Text style={[
-                    styles.itemText,
-                    item.checked && styles.itemTextChecked
-                  ]}>{item.name}</Text>
+                  <Text
+                    style={[
+                      styles.itemText,
+                      item.checked && styles.itemTextChecked,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
                   {item.recipeName && (
-                    <Text style={styles.recipeText}>From: {item.recipeName}</Text>
+                    <Text style={styles.recipeText}>
+                      From: {item.recipeName}
+                    </Text>
                   )}
                 </View>
-                <Pressable 
+                <Pressable
                   style={styles.deleteButton}
-                  onPress={() => deleteItem(item.id)}>
+                  onPress={() => deleteItem(item.id)}
+                >
                   <Trash2 size={16} color="#94A3B8" />
                 </Pressable>
               </View>
@@ -130,7 +154,7 @@ export default function ShoppingScreen() {
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Completed</Text>
           <Text style={styles.summaryValue}>
-            {items.filter(item => item.checked).length}
+            {items.filter((item) => item.checked).length}
           </Text>
         </View>
       </View>
@@ -250,7 +274,6 @@ const styles = StyleSheet.create({
   },
   summaryItem: {
     flex: 1,
-    alignItems: 'center',
   },
   summaryLabel: {
     fontFamily: 'Inter',

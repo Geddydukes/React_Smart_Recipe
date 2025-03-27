@@ -1,38 +1,17 @@
 import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 import { GroceryCategory, Ingredient } from '../types/recipe';
 
-const genAI = new GoogleGenerativeAI(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '');
-
-export interface VideoGenerationConfig {
-  recipe: {
-    title: string;
-    ingredients: string[];
-    instructions: string[];
-    prepTime: number;
-    cookTime: number;
-    servings: number;
-  };
-  style: {
-    aspectRatio: '9:16' | '16:9' | '1:1';
-    duration: number;
-    music: 'upbeat' | 'relaxing' | 'none';
-    transitions: 'minimal' | 'dynamic';
-  };
-}
-
-export interface ParsedIngredient {
-  name: string;
-  amount: number;
-  unit: string;
-  category: GroceryCategory;
-}
-
 export class AIService {
   private model: GenerativeModel;
   private visionModel: GenerativeModel;
 
   constructor() {
-    this.model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp-image-generation' });
+    const genAI = new GoogleGenerativeAI(
+      process.env.EXPO_PUBLIC_GEMINI_API_KEY || ''
+    );
+    this.model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash-exp-image-generation',
+    });
     this.visionModel = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
   }
 
@@ -51,7 +30,9 @@ export class AIService {
 
   private buildVideoPrompt(config: VideoGenerationConfig): string {
     return `
-Create a viral cooking video for ${config.recipe.title} with the following specifications:
+Create a viral cooking video for ${
+      config.recipe.title
+    } with the following specifications:
 
 Style:
 - Aspect Ratio: ${config.style.aspectRatio}
@@ -65,7 +46,7 @@ Recipe Details:
 - Servings: ${config.recipe.servings}
 
 Ingredients:
-${config.recipe.ingredients.map(i => `- ${i}`).join('\n')}
+${config.recipe.ingredients.map((i) => `- ${i}`).join('\n')}
 
 Instructions:
 ${config.recipe.instructions.map((i, idx) => `${idx + 1}. ${i}`).join('\n')}
@@ -108,7 +89,7 @@ Parse amounts into numerical values and standardize units.
 
       const result = await this.visionModel.generateContent([
         prompt,
-        { inlineData: { imageUrl } }
+        { inlineData: { imageUrl } },
       ]);
       const response = await result.response;
       return JSON.parse(response.text());
@@ -118,7 +99,9 @@ Parse amounts into numerical values and standardize units.
     }
   }
 
-  async categorizeIngredients(ingredients: string[]): Promise<ParsedIngredient[]> {
+  async categorizeIngredients(
+    ingredients: string[]
+  ): Promise<ParsedIngredient[]> {
     try {
       const prompt = `
 Analyze these ingredients and categorize them. Return a JSON array with parsed amounts and appropriate grocery categories:
