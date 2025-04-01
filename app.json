@@ -14,7 +14,8 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chefing.app"
+      "bundleIdentifier": "com.chefing.app",
+      "deploymentTarget": "15.1"
     },
     "android": {
       "adaptiveIcon": {

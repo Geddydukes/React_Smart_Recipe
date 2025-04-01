@@ -49,14 +49,23 @@ Create a `.env` file in the root directory with the following variables:
 
 ```env
 # Stripe Configuration
-STRIPE_PUBLISHABLE_KEY=your_publishable_key
-STRIPE_SECRET_KEY=your_secret_key
-STRIPE_WEBHOOK_SECRET=your_webhook_secret
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_publishable_key
+EXPO_PUBLIC_STRIPE_SECRET_KEY=your_secret_key
+EXPO_PUBLIC_STRIPE_WEBHOOK_SECRET=your_webhook_secret
+EXPO_PUBLIC_STRIPE_API_URL=https://api.stripe.com/v1
 
 # Supabase Configuration
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+EXPO_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Google AI (Gemini) Configuration
+EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
+
+# App Configuration
+EXPO_PUBLIC_APP_NAME="Chefing"
+EXPO_PUBLIC_APP_VERSION=1.0.0
+EXPO_PUBLIC_APP_ENV=development
 ```
 
 ### Stripe Setup
@@ -89,8 +98,6 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
 2. Start the development server:
@@ -104,8 +111,6 @@ Run the test suite:
 
 ```bash
 npm test
-# or
-yarn test
 ```
 
 ## Subscription Management
