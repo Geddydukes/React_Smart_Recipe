@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -89,7 +90,6 @@ export default function RecipeListScreen() {
                 {item.description}
               </Text>
               <View style={styles.recipeInfo}>
-                <Text style={styles.infoText}>Prep: {item.prepTime}m</Text>
                 <Text style={styles.infoText}>Cook: {item.cookTime}m</Text>
                 <Text style={styles.infoText}>Serves: {item.servings}</Text>
               </View>

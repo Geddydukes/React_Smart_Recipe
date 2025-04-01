@@ -11,6 +11,7 @@ import {
 import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { SplashScreen } from 'expo-router';
 import { AuthProvider } from '@/lib/auth';
+import { NotificationHandler } from '../components/NotificationHandler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,8 +37,37 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <NotificationHandler />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="meals/create"
+          options={{ title: 'Add Meal', headerShown: false }}
+        />
+        <Stack.Screen
+          name="meals/[id]"
+          options={{ title: 'Meal Details', headerShown: false }}
+        />
+        <Stack.Screen
+          name="meals/edit/[id]"
+          options={{ title: 'Edit Meal', headerShown: false }}
+        />
+        <Stack.Screen
+          name="settings/calories"
+          options={{ title: 'Calorie Settings', headerShown: false }}
+        />
+        <Stack.Screen
+          name="settings/notifications"
+          options={{ title: 'Notification Settings', headerShown: false }}
+        />
+        <Stack.Screen
+          name="achievements/index"
+          options={{ title: 'Achievements', headerShown: false }}
+        />
+        <Stack.Screen
+          name="achievements/details"
+          options={{ title: 'Achievement Details', headerShown: false }}
+        />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
       <StatusBar style="auto" />

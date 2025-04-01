@@ -1,137 +1,207 @@
-import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
-import { GroceryCategory, Ingredient } from '../types/recipe';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ParsedRecipe } from '../types/ai';
 
-export class AIService {
-  private model: GenerativeModel;
-  private visionModel: GenerativeModel;
+const genAI = new GoogleGenerativeAI(process.env.EXPO_PUBLIC_GEMINI_API_KEY!);
 
-  constructor() {
-    const genAI = new GoogleGenerativeAI(
-      process.env.EXPO_PUBLIC_GEMINI_API_KEY || ''
-    );
-    this.model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp-image-generation',
-    });
-    this.visionModel = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
-  }
-
-  async generateRecipeVideo(config: VideoGenerationConfig): Promise<string> {
+export const aiService = {
+  async parseRecipeFromImage(imageUri: string): Promise<ParsedRecipe> {
     try {
-      const prompt = this.buildVideoPrompt(config);
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const videoUrl = response.text();
-      return videoUrl;
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+
+      // Convert image URI to base64
+      const imageResponse = await fetch(imageUri);
+      const blob = await imageResponse.blob();
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const prompt = `Please analyze this recipe image and extract the following information in JSON format:
+      {
+        "title": "Recipe title",
+        "description": "Brief description of the recipe",
+        "cookTime": "Cooking time in minutes",
+        "servings": "Number of servings",
+        "ingredients": ["List of ingredients"],
+        "instructions": ["Step by step instructions"]
+      }
+      
+      Please ensure all measurements are in metric units and times are in minutes.`;
+
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64.split(',')[1],
+          },
+        },
+      ]);
+
+      const aiResponse = await result.response;
+      const text = aiResponse.text();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+      if (!jsonMatch) {
+        throw new Error('Failed to parse recipe data');
+      }
+
+      const parsedData = JSON.parse(jsonMatch[0]);
+
+      return {
+        title: parsedData.title,
+        description: parsedData.description,
+        cookTime: parseInt(parsedData.cookTime),
+        servings: parseInt(parsedData.servings),
+        ingredients: parsedData.ingredients,
+        instructions: parsedData.instructions,
+      };
     } catch (error) {
-      console.error('Failed to generate video:', error);
-      throw new Error('Video generation failed');
+      console.error('Error parsing recipe:', error);
+      throw new Error('Failed to parse recipe from image');
     }
-  }
+  },
 
-  private buildVideoPrompt(config: VideoGenerationConfig): string {
-    return `
-Create a viral cooking video for ${
-      config.recipe.title
-    } with the following specifications:
-
-Style:
-- Aspect Ratio: ${config.style.aspectRatio}
-- Duration: ${config.style.duration} seconds
-- Music: ${config.style.music}
-- Transitions: ${config.style.transitions}
-
-Recipe Details:
-- Prep Time: ${config.recipe.prepTime} minutes
-- Cook Time: ${config.recipe.cookTime} minutes
-- Servings: ${config.recipe.servings}
-
-Ingredients:
-${config.recipe.ingredients.map((i) => `- ${i}`).join('\n')}
-
-Instructions:
-${config.recipe.instructions.map((i, idx) => `${idx + 1}. ${i}`).join('\n')}
-
-Please generate a visually appealing, step-by-step cooking video optimized for social media sharing.
-Include dynamic text overlays, engaging transitions, and proper pacing for each step.
-    `.trim();
-  }
-
-  async parseRecipeFromImage(imageUrl: string): Promise<{
-    ingredients: ParsedIngredient[];
-    instructions: string[];
-    title?: string;
-    prepTime?: number;
-    cookTime?: number;
-    servings?: number;
+  async estimateCaloriesFromImage(imageUri: string): Promise<{
+    foodItems: Array<{
+      name: string;
+      portion: string;
+      calories: number;
+      confidence: 'High' | 'Medium' | 'Low';
+      nutrients: {
+        protein: number;
+        carbs: number;
+        fat: number;
+      };
+    }>;
+    totalCalories: number;
+    confidence: 'High' | 'Medium' | 'Low';
+    notes: string;
   }> {
     try {
-      const prompt = `
-Analyze this recipe image and extract the following information in JSON format:
-{
-  "title": "Recipe title if visible",
-  "ingredients": [
-    {
-      "name": "ingredient name",
-      "amount": number,
-      "unit": "measurement unit",
-      "category": "one of: ${Object.values(GroceryCategory).join(', ')}"
-    }
-  ],
-  "instructions": ["step 1", "step 2", ...],
-  "prepTime": "preparation time in minutes if specified",
-  "cookTime": "cooking time in minutes if specified",
-  "servings": "number of servings if specified"
-}
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
 
-For ingredients, categorize each item into the most appropriate grocery category.
-Parse amounts into numerical values and standardize units.
-      `.trim();
+      // Convert image URI to base64
+      const imageResponse = await fetch(imageUri);
+      const blob = await imageResponse.blob();
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
 
-      const result = await this.visionModel.generateContent([
+      const prompt = `Analyze this food image and provide a detailed nutritional breakdown in JSON format:
+      {
+        "foodItems": [
+          {
+            "name": "Food name",
+            "portion": "Estimated portion size",
+            "calories": "Estimated calories",
+            "confidence": "High/Medium/Low",
+            "nutrients": {
+              "protein": "g",
+              "carbs": "g",
+              "fat": "g"
+            }
+          }
+        ],
+        "totalCalories": "Total estimated calories",
+        "confidence": "Overall confidence in estimation",
+        "notes": "Any relevant notes about the estimation"
+      }
+
+      Please ensure:
+      1. Portion sizes are in standard measurements (g, ml, cups, etc.)
+      2. Confidence levels reflect the clarity of the image and food recognition
+      3. Include any visible ingredients or toppings
+      4. Note if the estimation is based on typical serving sizes
+      5. Consider the visual size of the food items in the image
+      6. Account for any visible sauces, dressings, or toppings`;
+
+      const result = await model.generateContent([
         prompt,
-        { inlineData: { imageUrl } },
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64.split(',')[1],
+          },
+        },
       ]);
-      const response = await result.response;
-      return JSON.parse(response.text());
-    } catch (error) {
-      console.error('Failed to parse recipe from image:', error);
-      throw new Error('Recipe parsing failed');
-    }
-  }
 
-  async categorizeIngredients(
-    ingredients: string[]
-  ): Promise<ParsedIngredient[]> {
+      const aiResponse = await result.response;
+      const text = aiResponse.text();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+      if (!jsonMatch) {
+        throw new Error('Failed to parse calorie data');
+      }
+
+      const parsedData = JSON.parse(jsonMatch[0]);
+
+      return {
+        foodItems: parsedData.foodItems.map((item: any) => ({
+          ...item,
+          calories: parseInt(item.calories),
+          nutrients: {
+            protein: parseFloat(item.nutrients.protein),
+            carbs: parseFloat(item.nutrients.carbs),
+            fat: parseFloat(item.nutrients.fat),
+          },
+        })),
+        totalCalories: parseInt(parsedData.totalCalories),
+        confidence: parsedData.confidence,
+        notes: parsedData.notes,
+      };
+    } catch (error) {
+      console.error('Error estimating calories:', error);
+      throw new Error('Failed to estimate calories from image');
+    }
+  },
+
+  async parseRecipeFromText(recipeText: string): Promise<ParsedRecipe> {
     try {
-      const prompt = `
-Analyze these ingredients and categorize them. Return a JSON array with parsed amounts and appropriate grocery categories:
-[
-  {
-    "name": "ingredient name",
-    "amount": number,
-    "unit": "measurement unit",
-    "category": "one of: ${Object.values(GroceryCategory).join(', ')}"
-  }
-]
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-Input ingredients:
-${ingredients.join('\n')}
+      const prompt = `Please analyze this recipe text and extract the following information in JSON format:
+      {
+        "title": "Recipe title",
+        "description": "Brief description of the recipe",
+        "cookTime": "Cooking time in minutes",
+        "servings": "Number of servings",
+        "ingredients": ["List of ingredients"],
+        "instructions": ["Step by step instructions"]
+      }
+      
+      Recipe text:
+      ${recipeText}
+      
+      Please ensure all measurements are in metric units and times are in minutes.`;
 
-Guidelines:
-- Parse ingredient amounts into numerical values
-- Standardize units (e.g., cups, tablespoons, ounces)
-- Categorize each ingredient into the most appropriate grocery section
-- Handle combined measurements (e.g., "1 1/2 cups" should be 1.5)
-      `.trim();
+      const result = await model.generateContent(prompt);
+      const aiResponse = await result.response;
+      const responseText = aiResponse.text();
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return JSON.parse(response.text());
+      if (!jsonMatch) {
+        throw new Error('Failed to parse recipe data');
+      }
+
+      const parsedData = JSON.parse(jsonMatch[0]);
+
+      return {
+        title: parsedData.title,
+        description: parsedData.description,
+        cookTime: parseInt(parsedData.cookTime),
+        servings: parseInt(parsedData.servings),
+        ingredients: parsedData.ingredients,
+        instructions: parsedData.instructions,
+      };
     } catch (error) {
-      console.error('Failed to categorize ingredients:', error);
-      throw new Error('Ingredient categorization failed');
+      console.error('Error parsing recipe text:', error);
+      throw new Error('Failed to parse recipe from text');
     }
-  }
-}
-
-export const aiService = new AIService();
+  },
+};

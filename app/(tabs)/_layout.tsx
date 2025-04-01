@@ -1,6 +1,11 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Book, ShoppingBag, Camera, Settings } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet } from 'react-native';
+
+type TabBarIconProps = {
+  color: string;
+  size: number;
+};
 
 export default function TabLayout() {
   return (
@@ -8,43 +13,54 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: '#FF6B6B',
-        tabBarInactiveTintColor: '#94A3B8',
+        tabBarActiveTintColor: '#007AFF',
+        tabBarInactiveTintColor: '#8E8E93',
         tabBarLabelStyle: styles.tabLabel,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="recipe"
+        name="recipes"
         options={{
           title: 'Recipes',
-          tabBarIcon: ({ color, size }) => <Book size={size} color={color} />,
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
+            <Ionicons name="restaurant" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="scan"
         options={{
           title: 'Scan',
-          tabBarIcon: ({ color, size }) => <Camera size={size} color={color} />,
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
+            <Ionicons name="camera" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="shopping"
+        name="social"
         options={{
-          title: 'Shopping',
-          tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />,
+          title: 'Social',
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
+            <Ionicons name="share-social" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="profile"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          title: 'Profile',
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

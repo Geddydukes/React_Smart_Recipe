@@ -10,14 +10,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { supabase } from '../../lib/supabase';
-import { Recipe } from '../../types/recipe';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
-import { LoadingState } from '../../components/LoadingState';
+import { supabase } from '../../../lib/supabase';
+import { Recipe } from '../../../types/recipe';
+import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { LoadingState } from '../../../components/LoadingState';
 
-export default function NewRecipeScreen() {
-  const { data } = useLocalSearchParams<{ data?: string }>();
-  const [loading, setLoading] = useState(false);
+export default function EditRecipeScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [recipe, setRecipe] = useState<Partial<Recipe>>({
     title: '',
     description: '',
@@ -29,18 +30,31 @@ export default function NewRecipeScreen() {
   });
 
   useEffect(() => {
-    if (data) {
-      try {
-        const parsedData = JSON.parse(data);
-        setRecipe((prev) => ({
-          ...prev,
-          ...parsedData,
-        }));
-      } catch (error) {
-        console.error('Failed to parse recipe data:', error);
-      }
+    fetchRecipe();
+  }, [id]);
+
+  const fetchRecipe = async () => {
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setRecipe(data);
+    } catch (err) {
+      Alert.alert(
+        'Error',
+        err instanceof Error ? err.message : 'Failed to fetch recipe',
+      );
+      router.back();
+    } finally {
+      setLoading(false);
     }
-  }, [data]);
+  };
 
   const handleSave = async () => {
     if (!recipe.title?.trim()) {
@@ -48,30 +62,25 @@ export default function NewRecipeScreen() {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     try {
-      const { data: savedRecipe, error } = await supabase
+      const { error } = await supabase
         .from('recipes')
-        .insert([
-          {
-            ...recipe,
-            isFavorite: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
+        .update({
+          ...recipe,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq('id', id);
 
       if (error) throw error;
-      router.push(`/recipes/${savedRecipe.id}`);
+      router.back();
     } catch (error) {
       Alert.alert(
         'Error',
         error instanceof Error ? error.message : 'Failed to save recipe',
       );
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -121,19 +130,23 @@ export default function NewRecipeScreen() {
     }));
   };
 
+  if (loading) {
+    return <LoadingState message="Loading recipe..." />;
+  }
+
   return (
     <ErrorBoundary>
       <SafeAreaView style={styles.container}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.header}>
-            <Text style={styles.title}>New Recipe</Text>
+            <Text style={styles.title}>Edit Recipe</Text>
             <Pressable
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
               onPress={handleSave}
-              disabled={loading}
+              disabled={saving}
             >
               <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save'}
+                {saving ? 'Saving...' : 'Save'}
               </Text>
             </Pressable>
           </View>

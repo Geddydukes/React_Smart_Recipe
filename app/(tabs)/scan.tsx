@@ -13,7 +13,7 @@ export default function ScanScreen() {
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         quality: 1,
       });
@@ -33,10 +33,10 @@ export default function ScanScreen() {
       const recipeData = await aiService.parseRecipeFromImage(imageUri);
       // Navigate to recipe creation with parsed data
       router.push({
-        pathname: '/recipes/create',
+        pathname: '/recipes/new',
         params: {
-          data: JSON.stringify(recipeData)
-        }
+          data: JSON.stringify(recipeData),
+        },
       });
     } catch (err) {
       setError('Failed to scan recipe');
@@ -49,7 +49,9 @@ export default function ScanScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Scan Recipe</Text>
-        <Text style={styles.subtitle}>Upload a photo of your recipe to add it to your collection</Text>
+        <Text style={styles.subtitle}>
+          Upload a photo of your recipe to add it to your collection
+        </Text>
       </View>
 
       <View style={styles.uploadArea}>
@@ -63,7 +65,9 @@ export default function ScanScreen() {
           <Pressable style={styles.cameraButton}>
             <Camera size={48} color="#FF6B6B" />
             <Text style={styles.uploadText}>Take Photo</Text>
-            <Text style={styles.uploadHint}>Use your camera to capture a recipe</Text>
+            <Text style={styles.uploadHint}>
+              Use your camera to capture a recipe
+            </Text>
           </Pressable>
         )}
       </View>
@@ -75,15 +79,15 @@ export default function ScanScreen() {
         </View>
       )}
 
-      {error && (
-        <Text style={styles.errorText}>{error}</Text>
-      )}
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       <View style={styles.tipsContainer}>
         <Text style={styles.tipsTitle}>Tips for best results:</Text>
         <Text style={styles.tipText}>• Ensure good lighting</Text>
         <Text style={styles.tipText}>• Keep the image clear and focused</Text>
-        <Text style={styles.tipText}>• Include all ingredients and instructions</Text>
+        <Text style={styles.tipText}>
+          • Include all ingredients and instructions
+        </Text>
       </View>
     </View>
   );
