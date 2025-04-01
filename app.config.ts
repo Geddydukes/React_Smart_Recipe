@@ -49,12 +49,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
   },
-  plugins: ['expo-router'],
+  web: {
+    favicon: './assets/favicon.png',
+  },
+  plugins: [
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          deploymentTarget: '13.0',
+        },
+      },
+    ],
+  ],
   scheme: 'chefing',
   extra: {
-    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+    stripePublishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     eas: {
       projectId: 'your-project-id',
     },

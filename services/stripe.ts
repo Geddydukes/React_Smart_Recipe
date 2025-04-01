@@ -6,8 +6,7 @@ import {
 } from '@stripe/stripe-react-native';
 import Constants from 'expo-constants';
 
-const STRIPE_PUBLISHABLE_KEY =
-  Constants.expoConfig?.extra?.stripePublishableKey;
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
 if (!STRIPE_PUBLISHABLE_KEY) {
   throw new Error('Stripe publishable key is not configured');
@@ -18,7 +17,7 @@ export const stripeService = {
     try {
       await initStripe({
         publishableKey: STRIPE_PUBLISHABLE_KEY,
-        merchantIdentifier: 'merchant.com.reactsmartrecipe',
+        merchantIdentifier: 'merchant.com.chefing',
       });
     } catch (error) {
       console.error('Failed to initialize Stripe:', error);
@@ -32,7 +31,7 @@ export const stripeService = {
       const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'React Smart Recipe',
+        merchantDisplayName: 'Chefing',
         paymentIntentClientSecret: clientSecret,
         style: 'alwaysDark',
         googlePay: {

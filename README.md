@@ -1,6 +1,6 @@
-# React Smart Recipe App
+# Chefing App
 
-A smart recipe management application with premium features powered by Stripe subscriptions.
+A modern recipe management application with premium features powered by Stripe subscriptions.
 
 ## Features
 
@@ -95,9 +95,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 2. Start the development server:
    ```bash
-   npm start
-   # or
-   yarn start
+   npx expo start
    ```
 
 ### Testing
