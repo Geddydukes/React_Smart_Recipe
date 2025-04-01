@@ -1,69 +1,105 @@
-# Changelog
+# Chefing - Changelog
 
 ## [Unreleased]
 
+### Added
+
+- Onboarding flow with Chefing branding
+- Accessibility improvements
+- Analytics tracking
+- Performance monitoring
+- Error boundaries
+- Loading states
+- Offline support basics
+
+### Changed
+
+- Updated app branding to "Chefing" throughout
+- Improved UI/UX consistency
+- Enhanced error handling
+- Optimized image loading
+- Improved list rendering performance
+
 ### Fixed
-- Resolved duplicate screen name error by restructuring navigation
-  - Removed standalone recipe.tsx file
-  - Properly organized recipes section with Stack navigation
-  - Ensured consistent naming between tab routes and folder structure
-  - Prevents runtime errors with duplicate screen names
 
-### Navigation Structure
-- Tab Navigation
-  - Home (index)
-  - Recipes (with nested stack navigation)
-    - Recipe List (index)
-    - Recipe Details
-    - Create Recipe (modal)
-  - Scan
-  - Shopping
-  - Settings
+- TypeScript type issues
+- Navigation flow bugs
+- Authentication state management
+- Data persistence issues
+- Accessibility issues
 
-### Pending Changes
-- Implement recipe detail view navigation
-- Add recipe creation functionality
-- Set up shopping cart features
-- Integrate AI-powered recipe scanning
-- Add user authentication
-- Implement settings functionality
+## [0.2.0] - 2024-03-25
 
-### Technical Debt
-- Need to set up proper state management
-- Database integration required
-- Error boundaries needed
-- Loading states to be implemented
-- Form validation to be added
+### Added
 
-### Architecture Decisions
-1. Navigation Structure
-   - Using tab-based navigation as primary navigation method
-   - Stack navigation within tabs for detail views
-   - Modal navigation for forms and quick actions
+- Shopping list feature
+- Recipe sharing
+- User profiles
+- Social features basics
+- Image upload
+- Recipe categories
+- Search functionality
 
-2. State Management
-   - Currently using local state
-   - Plan to implement global state solution
-   - Need to handle persistent storage
+### Changed
 
-3. Data Flow
-   - API service layer to be implemented
-   - Caching strategy needed
-   - Offline support to be added
+- Improved database schema
+- Enhanced authentication flow
+- Updated UI components
+- Optimized performance
+- Improved error handling
 
-### Known Issues
-1. Navigation
-   - ✓ Fixed: Duplicate screen names in navigation
-   - ✓ Fixed: Navigation structure organization
-   - Pending: Deep linking setup
-   - Pending: Navigation type safety
+### Fixed
 
-2. UI/UX
-   - Loading states needed
-   - Error states to be implemented
-   - Accessibility improvements required
+- Navigation bugs
+- State management issues
+- Data synchronization
+- UI inconsistencies
+- Performance issues
 
-3. Performance
-   - Image optimization needed
-   - List virtualization required for large datasets
-   - Cache management to be implemented
+## [0.1.0] - 2024-03-20
+
+### Added
+
+- Initial project setup
+- Basic authentication
+- Recipe management
+- Database integration
+- Basic UI components
+- Navigation structure
+- TypeScript configuration
+
+### Changed
+
+- Project structure
+- Code organization
+- Development workflow
+- Build process
+- Testing setup
+
+### Fixed
+
+- Initial setup issues
+- Configuration problems
+- Development environment
+- Build errors
+- Type errors
+
+## [0.0.1] - 2024-03-15
+
+### Added
+
+- Project initialization
+- Basic documentation
+- Development environment
+- Git setup
+- Initial dependencies
+- Basic README
+- Project structure
+
+### Changed
+
+- None (initial release)
+
+### Fixed
+
+- None (initial release)

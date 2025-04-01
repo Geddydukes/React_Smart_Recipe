@@ -6,12 +6,15 @@ import {
   Pressable,
   Image,
   ActivityIndicator,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Camera, Plus, Utensils, Trophy, BookOpen } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 import { aiService } from '../../services/ai';
 import { CalorieEstimation } from '../../types/ai';
@@ -24,19 +27,54 @@ interface DailyCalories {
   remaining: number;
 }
 
+interface TutorialStep {
+  title: string;
+  description: string;
+  targetRef: React.RefObject<View>;
+}
+
+const TUTORIAL_SHOWN_KEY = '@tracker_tutorial_shown';
+
 export default function TrackerScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [meals, setMeals] = useState<any[]>([]);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const [calories, setCalories] = useState<DailyCalories>({
     target: 2000,
     consumed: 0,
     remaining: 2000,
   });
 
+  const caloriesCardRef = useRef<View>(null);
+  const addButtonRef = useRef<View>(null);
+  const mealsSectionRef = useRef<View>(null);
+
   useEffect(() => {
+    checkTutorialStatus();
     fetchMeals();
   }, []);
+
+  const checkTutorialStatus = async () => {
+    try {
+      const tutorialShown = await AsyncStorage.getItem(TUTORIAL_SHOWN_KEY);
+      if (!tutorialShown) {
+        setShowTutorial(true);
+      }
+    } catch (error) {
+      console.error('Error checking tutorial status:', error);
+    }
+  };
+
+  const handleTutorialComplete = async () => {
+    try {
+      await AsyncStorage.setItem(TUTORIAL_SHOWN_KEY, 'true');
+      setShowTutorial(false);
+    } catch (error) {
+      console.error('Error saving tutorial status:', error);
+    }
+  };
 
   const fetchMeals = async () => {
     try {
@@ -67,6 +105,27 @@ export default function TrackerScreen() {
     }
   };
 
+  const tutorialSteps: TutorialStep[] = [
+    {
+      title: 'Track Your Calories',
+      description:
+        'Keep track of your daily calorie intake and stay on top of your nutrition goals.',
+      targetRef: caloriesCardRef,
+    },
+    {
+      title: 'Add Meals',
+      description:
+        'Tap the + button to add a new meal. You can take a photo or choose from your gallery.',
+      targetRef: addButtonRef,
+    },
+    {
+      title: 'View Your Meals',
+      description:
+        'See all your meals for the day and their calorie content in this section.',
+      targetRef: mealsSectionRef,
+    },
+  ];
+
   const handleAddMeal = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -94,6 +153,53 @@ export default function TrackerScreen() {
     }
   };
 
+  const renderTutorialOverlay = () => {
+    if (!showTutorial) return null;
+
+    const currentStepData = tutorialSteps[currentStep];
+    const isLastStep = currentStep === tutorialSteps.length - 1;
+
+    return (
+      <Modal
+        transparent
+        visible={showTutorial}
+        animationType="fade"
+        onRequestClose={() => handleTutorialComplete()}
+      >
+        <View style={styles.tutorialOverlay}>
+          <View style={styles.tutorialContent}>
+            <Text style={styles.tutorialTitle}>{currentStepData.title}</Text>
+            <Text style={styles.tutorialDescription}>
+              {currentStepData.description}
+            </Text>
+            <View style={styles.tutorialButtons}>
+              <Pressable
+                style={[styles.tutorialButton, styles.skipButton]}
+                onPress={() => handleTutorialComplete()}
+              >
+                <Text style={styles.skipButtonText}>Skip Tutorial</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.tutorialButton, styles.nextButton]}
+                onPress={() => {
+                  if (isLastStep) {
+                    handleTutorialComplete();
+                  } else {
+                    setCurrentStep((prev) => prev + 1);
+                  }
+                }}
+              >
+                <Text style={styles.nextButtonText}>
+                  {isLastStep ? 'Get Started' : 'Next'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -119,12 +225,16 @@ export default function TrackerScreen() {
       <ScrollView style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Calorie Tracker</Text>
-          <Pressable style={styles.addButton} onPress={handleAddMeal}>
+          <Pressable
+            ref={addButtonRef}
+            style={styles.addButton}
+            onPress={handleAddMeal}
+          >
             <Plus size={24} color="#fff" />
           </Pressable>
         </View>
 
-        <View style={styles.caloriesCard}>
+        <View ref={caloriesCardRef} style={styles.caloriesCard}>
           <LinearGradient
             colors={['#6366F1', '#8B5CF6']}
             style={styles.caloriesGradient}
@@ -159,7 +269,7 @@ export default function TrackerScreen() {
           </LinearGradient>
         </View>
 
-        <View style={styles.mealsSection}>
+        <View ref={mealsSectionRef} style={styles.mealsSection}>
           <Text style={styles.sectionTitle}>Today's Meals</Text>
           {meals.length === 0 ? (
             <EmptyState
@@ -195,6 +305,7 @@ export default function TrackerScreen() {
           )}
         </View>
       </ScrollView>
+      {renderTutorialOverlay()}
     </SafeAreaView>
   );
 }
@@ -207,17 +318,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   title: {
     fontSize: 24,
@@ -232,22 +339,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   caloriesCard: {
     margin: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   caloriesGradient: {
-    padding: 20,
+    padding: 24,
   },
   caloriesTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#fff',
     marginBottom: 16,
   },
@@ -263,6 +370,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    marginBottom: 4,
   },
   caloriesLabel: {
     fontSize: 14,
@@ -300,11 +408,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 12,
-    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   mealImage: {
     width: 80,
@@ -331,5 +442,59 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6366F1',
     fontWeight: '500',
+  },
+  tutorialOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tutorialContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: Dimensions.get('window').width - 48,
+    alignItems: 'center',
+  },
+  tutorialTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1F2937',
+  },
+  tutorialDescription: {
+    fontSize: 16,
+    color: '#4B5563',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  tutorialButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  tutorialButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  skipButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  nextButton: {
+    backgroundColor: '#6366F1',
+  },
+  skipButtonText: {
+    color: '#4B5563',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

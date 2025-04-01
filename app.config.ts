@@ -52,11 +52,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: ['expo-router'],
   scheme: 'chefing',
   extra: {
-    router: {
-      origin: false,
-    },
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     eas: {
-      projectId: process.env.EAS_PROJECT_ID,
+      projectId: 'your-project-id',
     },
   },
 });

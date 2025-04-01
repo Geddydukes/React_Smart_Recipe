@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
+  TextInput,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { socialService } from '../../services/social';
 import { useRouter } from 'expo-router';
 import { useRecipeStore } from '../../store/recipe';
+import { LoadingState } from '../../components/LoadingState';
 
 export default function SocialScreen() {
   const [loading, setLoading] = useState(false);
@@ -25,14 +27,30 @@ export default function SocialScreen() {
       return;
     }
 
+    if (!url.includes('tiktok.com') && !url.includes('instagram.com')) {
+      Alert.alert('Error', 'Please enter a valid TikTok or Instagram URL');
+      return;
+    }
+
     setLoading(true);
     try {
       const recipe = await socialService.importRecipe(url);
-      await createRecipe(recipe);
+      await createRecipe({
+        ...recipe,
+        isFavorite: false,
+        imageUrl: recipe.imageUrl || 'https://chefing.app/default-recipe.jpg',
+        cookTime: recipe.cookTime || 30,
+        servings: recipe.servings || 4,
+      });
       Alert.alert('Success', 'Recipe imported successfully!');
       router.push('/recipes');
     } catch (error) {
-      Alert.alert('Error', 'Failed to import recipe. Please try again.');
+      Alert.alert(
+        'Error',
+        error instanceof Error
+          ? error.message
+          : 'Failed to import recipe. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -42,9 +60,18 @@ export default function SocialScreen() {
     try {
       await socialService.openApp(platform);
     } catch (error) {
-      Alert.alert('Error', 'Failed to open app. Please try again.');
+      Alert.alert(
+        'Error',
+        error instanceof Error
+          ? error.message
+          : 'Failed to open app. Please try again.',
+      );
     }
   };
+
+  if (loading) {
+    return <LoadingState message="Importing recipe..." />;
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -81,19 +108,22 @@ export default function SocialScreen() {
         <Text style={styles.description}>
           Paste a TikTok or Instagram URL to import a recipe
         </Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter TikTok or Instagram URL"
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+        />
         <TouchableOpacity
           style={[styles.button, styles.importButton]}
           onPress={handleImport}
           disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="cloud-download" size={24} color="#fff" />
-              <Text style={styles.buttonText}>Import Recipe</Text>
-            </>
-          )}
+          <Ionicons name="cloud-download" size={24} color="#fff" />
+          <Text style={styles.buttonText}>Import Recipe</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -133,6 +163,14 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
     marginBottom: 16,
   },
   buttonContainer: {

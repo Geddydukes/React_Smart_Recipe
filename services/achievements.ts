@@ -184,9 +184,56 @@ export const achievementService = {
     userId: string,
     achievement: Achievement,
   ): Promise<number> {
-    // This is a placeholder for social achievements
-    // Implement social features like sharing, following, etc.
-    return 0;
+    try {
+      // Get all social interactions for the user
+      const { data: interactions, error } = await supabase
+        .from('social_interactions')
+        .select('type, created_at')
+        .eq('user_id', userId)
+        .gte(
+          'created_at',
+          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        );
+
+      if (error) throw error;
+
+      // Count different types of social interactions
+      const interactionCounts = {
+        shares: 0,
+        follows: 0,
+        comments: 0,
+        likes: 0,
+      };
+
+      interactions?.forEach((interaction) => {
+        switch (interaction.type) {
+          case 'share':
+            interactionCounts.shares++;
+            break;
+          case 'follow':
+            interactionCounts.follows++;
+            break;
+          case 'comment':
+            interactionCounts.comments++;
+            break;
+          case 'like':
+            interactionCounts.likes++;
+            break;
+        }
+      });
+
+      // Calculate total social score based on interaction weights
+      const totalScore =
+        interactionCounts.shares * 5 + // Shares are worth more
+        interactionCounts.follows * 3 + // Follows are moderately valuable
+        interactionCounts.comments * 2 + // Comments are worth a bit
+        interactionCounts.likes; // Likes are worth the least
+
+      return totalScore;
+    } catch (error) {
+      console.error('Error calculating social progress:', error);
+      throw error;
+    }
   },
 
   async createUserAchievement(

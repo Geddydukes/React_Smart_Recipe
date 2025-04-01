@@ -1,5 +1,5 @@
 /*
-  # Initial Schema Setup for Recipe App
+  # Initial Schema Setup for Chefing App
 
   1. New Tables
     - `profiles`

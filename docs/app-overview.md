@@ -1,6 +1,39 @@
 # Chefing App Overview
 
-## Current Features
+## Core Features
+
+### Recipes Screen (`app/(tabs)/recipe/index.tsx`)
+
+The main recipes screen displays a list of all recipes created by the user. It includes:
+
+- Recipe cards with images, titles, and basic information
+- Pull-to-refresh functionality
+- Infinite scrolling
+- Add new recipe button
+- Search and filter capabilities
+
+### Recipe Details (`app/(tabs)/recipe/details.tsx`)
+
+The recipe details screen shows comprehensive information about a specific recipe:
+
+- High-quality recipe image
+- Ingredients list with quantities
+- Step-by-step instructions
+- Cooking time and difficulty
+- Nutritional information
+- Share and favorite options
+
+### Recipe Creation (`app/(tabs)/recipe/create.tsx`)
+
+The recipe creation screen allows users to:
+
+- Add recipe title and description
+- Upload recipe images
+- Input ingredients with quantities
+- Add step-by-step instructions
+- Set cooking time and difficulty
+- Add nutritional information
+- Save as draft or publish
 
 ### Home Screen (`app/(tabs)/index.tsx`)
 
@@ -10,35 +43,6 @@
 - Variables:
   - No state management currently implemented
   - Static UI only
-
-### Recipes Screen (`app/(tabs)/recipe/index.tsx`)
-
-- Recipe list view with categories
-- Search functionality
-- Filter button (UI only)
-- Variables:
-  - Search input state (local)
-  - Category filter state (local)
-
-### Recipe Details (`app/(tabs)/recipe/details.tsx`)
-
-- Recipe information display
-- Video generation feature
-- Variables:
-  - `isGeneratingVideo` (local state)
-  - `videoUrl` (local state)
-
-### Recipe Creation (`app/(tabs)/recipe/create.tsx`)
-
-- Form for new recipes
-- Variables:
-  - `form` (local state) containing:
-    - title
-    - prepTime
-    - cookTime
-    - servings
-    - ingredients
-    - instructions
 
 ### Scan Screen (`app/(tabs)/scan.tsx`)
 

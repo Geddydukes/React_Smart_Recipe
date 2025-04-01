@@ -11,10 +11,10 @@ import { Plus, Check, Trash2, Filter } from 'lucide-react-native';
 import { useState, useEffect } from 'react';
 import { GroceryCategory } from '../../../types/recipe';
 import { ShoppingItem } from '../../../types/recipe';
-import { shoppingService } from '../../../services/shopping';
 import { useShoppingStore } from '../../../store/shopping';
 import { LoadingState } from '../../../components/LoadingState';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { ShoppingTutorial } from '@/components/tutorials/ShoppingTutorial';
 
 export default function ShoppingScreen() {
   const [newItem, setNewItem] = useState('');
@@ -94,104 +94,88 @@ export default function ShoppingScreen() {
   }
 
   return (
-    <ErrorBoundary>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Shopping List</Text>
-          <View style={styles.addContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Add new item..."
-              value={newItem}
-              onChangeText={setNewItem}
-              onSubmitEditing={handleAddItem}
-              placeholderTextColor="#64748B"
-            />
-            <Pressable style={styles.filterButton}>
-              <Filter size={24} color="#1E293B" />
-            </Pressable>
-            <Pressable style={styles.addButton} onPress={handleAddItem}>
-              <Plus size={24} color="#FFFFFF" />
-            </Pressable>
+    <View style={styles.container}>
+      <ErrorBoundary>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Shopping List</Text>
+            <View style={styles.addContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Add new item..."
+                value={newItem}
+                onChangeText={setNewItem}
+                onSubmitEditing={handleAddItem}
+                placeholderTextColor="#64748B"
+              />
+              <Pressable style={styles.filterButton}>
+                <Filter size={24} color="#1E293B" />
+              </Pressable>
+              <Pressable style={styles.addButton} onPress={handleAddItem}>
+                <Plus size={24} color="#FFFFFF" />
+              </Pressable>
+            </View>
           </View>
-        </View>
 
-        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-          {Object.entries(groupedItems).map(([category, categoryItems]) => (
-            <View key={category} style={styles.category}>
-              <Text style={styles.categoryTitle}>{category}</Text>
-              {categoryItems.map((item) => (
-                <View key={item.id} style={styles.item}>
-                  <Pressable
-                    style={[
-                      styles.checkbox,
-                      item.checked && styles.checkboxChecked,
-                    ]}
-                    onPress={() => handleToggleItem(item.id, !item.checked)}
-                  >
-                    {item.checked && <Check size={16} color="#FFFFFF" />}
-                  </Pressable>
-                  <View style={styles.itemContent}>
-                    <Text
+          <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+            {Object.entries(groupedItems).map(([category, categoryItems]) => (
+              <View key={category} style={styles.category}>
+                <Text style={styles.categoryTitle}>{category}</Text>
+                {categoryItems.map((item) => (
+                  <View key={item.id} style={styles.item}>
+                    <Pressable
                       style={[
-                        styles.itemText,
-                        item.checked && styles.itemTextChecked,
+                        styles.checkbox,
+                        item.checked && styles.checkboxChecked,
                       ]}
+                      onPress={() => handleToggleItem(item.id, !item.checked)}
                     >
-                      {item.name}
-                      {item.amount > 1 && ` (${item.amount} ${item.unit})`}
-                    </Text>
-                    {item.recipe_title && (
-                      <Text style={styles.recipeText}>
-                        From: {item.recipe_title}
+                      {item.checked && <Check size={16} color="#FFFFFF" />}
+                    </Pressable>
+                    <View style={styles.itemContent}>
+                      <Text
+                        style={[
+                          styles.itemText,
+                          item.checked && styles.itemTextChecked,
+                        ]}
+                      >
+                        {item.name}
+                        {item.amount > 1 && ` (${item.amount} ${item.unit})`}
                       </Text>
-                    )}
-                    {item.in_pantry &&
-                      item.pantry_amount &&
-                      item.pantry_unit && (
-                        <Text style={styles.pantryText}>
-                          In pantry: {item.pantry_amount} {item.pantry_unit}
+                      {item.recipe_title && (
+                        <Text style={styles.recipeText}>
+                          From: {item.recipe_title}
                         </Text>
                       )}
+                    </View>
+                    <Pressable
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteItem(item.id)}
+                    >
+                      <Trash2 size={20} color="#EF4444" />
+                    </Pressable>
                   </View>
-                  <Pressable
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteItem(item.id)}
-                  >
-                    <Trash2 size={16} color="#94A3B8" />
-                  </Pressable>
-                </View>
-              ))}
-            </View>
-          ))}
+                ))}
+              </View>
+            ))}
+          </ScrollView>
         </ScrollView>
-
-        <View style={styles.summary}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Total Items</Text>
-            <Text style={styles.summaryValue}>{items.length}</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Completed</Text>
-            <Text style={styles.summaryValue}>
-              {items.filter((item) => item.checked).length}
-            </Text>
-          </View>
-          {items.some((item) => item.checked) && (
-            <Pressable style={styles.clearButton} onPress={handleClearChecked}>
-              <Text style={styles.clearButtonText}>Clear Checked</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-    </ErrorBoundary>
+      </ErrorBoundary>
+      <ShoppingTutorial />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
     padding: 24,
@@ -288,47 +272,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 4,
   },
-  pantryText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    color: '#4CAF50',
-    marginTop: 2,
-  },
   deleteButton: {
     padding: 4,
-  },
-  summary: {
-    flexDirection: 'row',
-    padding: 24,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    alignItems: 'center',
-  },
-  summaryItem: {
-    flex: 1,
-  },
-  summaryLabel: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1E293B',
-  },
-  clearButton: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginLeft: 16,
-  },
-  clearButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: '#64748B',
   },
 });
