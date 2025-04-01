@@ -35,8 +35,10 @@ export const stripeService = {
         merchantDisplayName: 'React Smart Recipe',
         paymentIntentClientSecret: clientSecret,
         style: 'alwaysDark',
-        googlePay: true,
-        merchantCountryCode: 'US',
+        googlePay: {
+          testEnv: true,
+          merchantCountryCode: 'US',
+        },
         defaultBillingDetails: {
           name: 'User Name',
           email: 'user@example.com',
@@ -55,14 +57,14 @@ export const stripeService = {
 
       return true;
     } catch (error) {
-      const stripeError = error as StripeError;
+      const stripeError = error as StripeError<unknown>;
       console.error('Payment sheet error:', stripeError);
       Alert.alert('Error', stripeError.message || 'Failed to process payment');
       return false;
     }
   },
 
-  handlePaymentError: (error: StripeError) => {
+  handlePaymentError: (error: StripeError<unknown>) => {
     console.error('Stripe error:', error);
     Alert.alert(
       'Payment Error',
