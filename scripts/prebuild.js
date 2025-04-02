@@ -1,15 +1,8 @@
-require 'pathname'
+const fs = require('fs');
+const path = require('path');
 
-# Get the absolute path to the project root
-project_root = Pathname.new(File.dirname(__FILE__)).parent.realpath
-
-# Require the autolinking manager
-require_relative '../node_modules/expo-modules-autolinking/scripts/ios/autolinking_manager'
+const PODFILE_TEMPLATE = `require_relative '../node_modules/expo-modules-autolinking/scripts/ios/autolinking_manager'
 require_relative '../node_modules/react-native/scripts/react_native_pods'
-
-node_path = '/Users/geddydukes/.nvm/versions/node/v18.20.8/bin/node'
-require File.join(File.dirname(`#{node_path} --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
-require File.join(File.dirname(`#{node_path} --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
@@ -22,30 +15,6 @@ install! 'cocoapods',
   :deterministic_uuids => false
 
 prepare_react_native_project!
-
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...), which will be excluded. To fix this,
-# you can also exclude `react-native-flipper` in `react-native.config.js`
-#
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-#   }
-# }
-# ```
-flipper_config = FlipperConfiguration.disabled
-if ENV['NO_FLIPPER'] == '1' then
-  # Explicitly disabled through environment variables
-  flipper_config = FlipperConfiguration.disabled
-elsif podfile_properties.key?('ios.flipper') then
-  # Configure Flipper in Podfile.properties.json
-  if podfile_properties['ios.flipper'] == 'true' then
-    flipper_config = FlipperConfiguration.enabled(["Debug", "Release"])
-  elsif podfile_properties['ios.flipper'] != 'false' then
-    flipper_config = FlipperConfiguration.enabled(["Debug", "Release"], { 'Flipper' => podfile_properties['ios.flipper'] })
-  end
-end
 
 target 'ReactSmartRecipeNew' do
   use_expo_modules!
@@ -73,9 +42,9 @@ target 'ReactSmartRecipeNew' do
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
-    :flipper_configuration => flipper_config
   )
 
   post_install do |installer|
@@ -97,12 +66,15 @@ target 'ReactSmartRecipeNew' do
       end
     end
   end
+end`;
 
-  post_integrate do |installer|
-    begin
-      expo_patch_react_imports!(installer)
-    rescue => e
-      Pod::UI.warn e
-    end
-  end
-end
+// Create ios directory if it doesn't exist
+const iosDir = path.join(__dirname, '..', 'ios');
+if (!fs.existsSync(iosDir)) {
+  fs.mkdirSync(iosDir, { recursive: true });
+}
+
+// Write Podfile
+fs.writeFileSync(path.join(iosDir, 'Podfile'), PODFILE_TEMPLATE);
+
+console.log('Podfile generated successfully!');
