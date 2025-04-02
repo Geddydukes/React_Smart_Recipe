@@ -17,6 +17,13 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'com.chefing.app',
     buildNumber: '1.0.0',
+    deploymentTarget: '15.1',
+    infoPlist: {
+      NSCameraUsageDescription:
+        'This app uses the camera to take photos of your recipes.',
+      NSPhotoLibraryUsageDescription:
+        'This app uses your photo library to add images to your recipes.',
+    },
   },
   android: {
     adaptiveIcon: {
@@ -25,6 +32,7 @@ const config: ExpoConfig = {
     },
     package: 'com.chefing.app',
     versionCode: 1,
+    permissions: ['CAMERA', 'READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE'],
   },
   web: {
     favicon: './assets/favicon.png',
@@ -34,13 +42,21 @@ const config: ExpoConfig = {
     'expo-secure-store',
     'expo-image-picker',
     'expo-media-library',
+    [
+      '@stripe/stripe-react-native',
+      {
+        merchantIdentifier: 'merchant.com.chefing',
+        enableGooglePay: true,
+      },
+    ],
+    'expo-dev-client',
   ],
   scheme: 'chefing',
   experiments: {
     typedRoutes: true,
     tsconfigPaths: true,
   },
-  sdkVersion: '52.0.0',
+  sdkVersion: '50.0.0',
   extra: {
     stripePublishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
