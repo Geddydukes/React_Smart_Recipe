@@ -40,4 +40,11 @@ module.exports = {
       projectId: 'your-project-id',
     },
   },
+  sdkVersion: '53.0.0',
+  runtimeVersion: {
+    policy: 'sdkVersion',
+  },
+  updates: {
+    url: 'https://u.expo.dev/your-project-id',
+  },
 };
